@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Извлечение ID из текста</title>
+    
+    <script src="header.js" defer></script>
+    
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .field-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea {
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #input {
+            background-color: white;
+        }
+        #output {
+            background-color: #e8e8e8;
+            color: #666;
+        }
+        .copy-button {
+        padding: 12px 20px;
+        background: #fcfcfc;
+        color: #2c3e50;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 140px;
+        margin-top: 10px;
+        min-height: 36px;
+        }
+        .copy-button:hover {
+        background-color: #e0e0e0;
+        }
+        .copy-button:active {
+            transform: none;
+        }
+        .copy-button.copied {
+        background-color: #2ecc71;
+        color: white;
+        }
+
+        .copy-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        }
+        .stats {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .success-animation {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Извлечение ID из текста</h1>
+        
+        <div class="field-group">
+            <label for="input">Поле ввода (редактируемое):</label>
+            <textarea id="input" placeholder="Введите текст здесь..."></textarea>
+        </div>
+        
+        <div class="field-group">
+            <label for="output">Поле вывода (нередактируемое):</label>
+            <textarea id="output" readonly placeholder="Здесь появятся извлеченные ID..."></textarea>
+            <button class="copy-button" id="copyButton">
+                📋 Копировать
+            </button>
+            <div class="stats" id="stats">Найдено ID: 0</div>
+        </div>
+    </div>
+
+    <script>
+        function processText() {
+            // Получаем текст из поля ввода
+            const inputText = document.getElementById('input').value;
+            
+            // Регулярное выражение для поиска 7-8 значных чисел
+            const regex = /\b\d{7,8}\b/g;
+            
+            // Находим все совпадения
+            const matches = inputText.match(regex);
+            
+            // Получаем поле вывода и статистику
+            const outputField = document.getElementById('output');
+            const stats = document.getElementById('stats');
+            
+            // Если найдены совпадения, выводим их с запятыми
+            if (matches) {
+                // Добавляем запятую после каждого ID, кроме последнего
+                const outputText = matches.map((id, index) => {
+                    return index === matches.length - 1 ? id : id + ',';
+                }).join('\n');
+                
+                outputField.value = outputText;
+                stats.textContent = `Найдено ID: ${matches.length}`;
+            } else {
+                outputField.value = '';
+                stats.textContent = 'Найдено ID: 0';
+            }
+        }
+
+        // Функция для копирования текста в буфер обмена
+        async function copyToClipboard() {
+            const outputText = document.getElementById('output').value;
+            const copyButton = document.getElementById('copyButton');
+            
+            if (!outputText) {
+                alert('Нет данных для копирования');
+                return;
+            }
+            
+            try {
+                copyButton.disabled = true;
+                copyButton.innerHTML = '⏳ Копирование...';
+                
+                await navigator.clipboard.writeText(outputText);
+                
+                // Анимация успеха
+                copyButton.innerHTML = '✅ Скопировано!';
+                copyButton.classList.add('success-animation', 'copied');
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = '📋 Копировать';
+                    copyButton.classList.remove('success-animation', 'copied');
+                    copyButton.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                // Fallback для старых браузеров
+                const outputField = document.getElementById('output');
+                outputField.select();
+                outputField.setSelectionRange(0, 99999); // Для мобильных устройств
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    
+                    if (successful) {
+                        // Анимация успеха
+                        copyButton.innerHTML = '✅ Скопировано!';
+                        copyButton.classList.add('success-animation', 'copied');
+                        
+                        setTimeout(() => {
+                            copyButton.innerHTML = '📋 Копировать';
+                            copyButton.classList.remove('success-animation', 'copied');
+                            copyButton.disabled = false;
+                        }, 2000);
+                    } else {
+                        throw new Error('execCommand не сработал');
+                    }
+                    
+                } catch (err) {
+                    copyButton.innerHTML = '📋 Копировать';
+                    copyButton.disabled = false;
+                    
+                    // Альтернативный способ копирования
+                    outputField.select();
+                    alert('Не удалось скопировать текст автоматически. Текст выделен - пожалуйста, скопируйте его вручную (Ctrl+C).');
+                }
+            }
+        }
+
+        // Обрабатываем текст при любом изменении в поле ввода
+        document.getElementById('input').addEventListener('input', processText);
+        
+        // Обрабатываем текст при загрузке страницы (на случай если есть начальные данные)
+        window.addEventListener('load', processText);
+        
+        // Добавляем обработчик для кнопки копирования
+        document.getElementById('copyButton').addEventListener('click', copyToClipboard);
+
+        // Также добавляем возможность вставки через Ctrl+V в основное поле
+        document.getElementById('input').addEventListener('paste', function(e) {
+            // Даем время на вставку, затем обрабатываем
+            setTimeout(processText, 100);
+        });
+    </script>
+</body>
+</html>
