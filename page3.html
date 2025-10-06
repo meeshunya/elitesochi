@@ -94,48 +94,15 @@
             outline: none;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        .realtor-field {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+        .counter {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+            text-align: right;
         }
-        .realtor-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 15px;
-        }
-        .realtor-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        .action-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .add-btn {
-            background-color: #27ae60;
-            color: white;
-        }
-        .add-btn:hover {
-            background-color: #219955;
-        }
-        .remove-btn {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .remove-btn:hover {
-            background-color: #c0392b;
-        }
-        .remove-btn:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
+        .counter.highlight {
+            color: #e74c3c;
+            font-weight: bold;
         }
         .output-field {
             margin-top: 20px;
@@ -229,6 +196,7 @@
                     <div class="info-content">
                         <div class="info-label">ID сделок:</div>
                         <textarea id="dealIds" class="input-field" placeholder="Введите ID сделок, каждый с новой строки"></textarea>
+                        <div class="counter" id="dealCounter">Сделок: 0</div>
                         <div class="hint">Каждый ID сделки вводите с новой строки</div>
                     </div>
                 </div>
@@ -238,16 +206,9 @@
                 <div class="info-field">
                     <div class="info-content">
                         <div class="info-label">ID риелторов:</div>
-                        <div id="realtorContainer">
-                            <div class="realtor-field">
-                                <input type="text" class="realtor-input" placeholder="Введите ID риелтора">
-                                <div class="realtor-buttons">
-                                    <button class="action-btn add-btn">+</button>
-                                    <button class="action-btn remove-btn" disabled>-</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="hint">Добавьте ID риелторов для распределения сделок</div>
+                        <textarea id="realtorIds" class="input-field" placeholder="Введите ID риелторов, каждый с новой строки"></textarea>
+                        <div class="counter" id="realtorCounter">Риелторов: 0</div>
+                        <div class="hint">Добавьте ID риелторов для распределения сделок (можно вводить с запятой или без)</div>
                     </div>
                 </div>
             </div>
@@ -272,74 +233,13 @@
    <script>
     // Получаем элементы DOM
     const dealIdsInput = document.getElementById('dealIds');
-    const realtorContainer = document.getElementById('realtorContainer');
+    const realtorIdsInput = document.getElementById('realtorIds');
     const outputElement = document.getElementById('output');
     const outputField = document.getElementById('outputField');
     const copyButton = document.getElementById('copyButton');
     const csvButton = document.getElementById('csvButton');
-    
-    // Функция для добавления нового поля риелтора
-    function addRealtorField() {
-        const realtorField = document.createElement('div');
-        realtorField.className = 'realtor-field';
-        
-        const realtorInput = document.createElement('input');
-        realtorInput.type = 'text';
-        realtorInput.className = 'realtor-input';
-        realtorInput.placeholder = 'Введите ID риелтора';
-        
-        const realtorButtons = document.createElement('div');
-        realtorButtons.className = 'realtor-buttons';
-        
-        const addButton = document.createElement('button');
-        addButton.className = 'action-btn add-btn';
-        addButton.textContent = '+';
-        
-        const removeButton = document.createElement('button');
-        removeButton.className = 'action-btn remove-btn';
-        removeButton.textContent = '-';
-        
-        realtorButtons.appendChild(addButton);
-        realtorButtons.appendChild(removeButton);
-        
-        realtorField.appendChild(realtorInput);
-        realtorField.appendChild(realtorButtons);
-        
-        realtorContainer.appendChild(realtorField);
-        
-        // Добавляем обработчики событий для нового поля
-        addRealtorEventListeners(realtorInput, addButton, removeButton, realtorField);
-        
-        updateRemoveButtons();
-    }
-    
-    // Функция для добавления обработчиков событий к полю риелтора
-    function addRealtorEventListeners(input, addBtn, removeBtn, field) {
-        // Обработчик для ввода в поле риелтора
-        input.addEventListener('input', updateOutput);
-        
-        // Обработчик для кнопки добавления
-        addBtn.addEventListener('click', addRealtorField);
-        
-        // Обработчик для кнопки удаления
-        removeBtn.addEventListener('click', function() {
-            // Удаляем поле только если есть больше одного поля
-            if (realtorContainer.children.length > 1) {
-                realtorContainer.removeChild(field);
-                updateOutput();
-                updateRemoveButtons();
-            }
-        });
-    }
-    
-    // Функция для обновления состояния кнопок удаления
-    function updateRemoveButtons() {
-        const removeButtons = document.querySelectorAll('.remove-btn');
-        // Отключаем кнопку удаления, если есть только одно поле
-        removeButtons.forEach(button => {
-            button.disabled = realtorContainer.children.length <= 1;
-        });
-    }
+    const dealCounter = document.getElementById('dealCounter');
+    const realtorCounter = document.getElementById('realtorCounter');
     
     // Функция для получения ID сделок
     function getDealIds() {
@@ -354,17 +254,29 @@
     
     // Функция для получения ID риелторов
     function getRealtorIds() {
-        const realtorInputs = document.querySelectorAll('.realtor-input');
-        const realtorIds = [];
+        const text = realtorIdsInput.value.trim();
+        if (!text) return [];
         
-        realtorInputs.forEach(input => {
-            const id = input.value.trim();
-            if (id !== '') {
-                realtorIds.push(id);
-            }
-        });
+        // Разделяем по переносам строк и фильтруем пустые значения
+        return text.split('\n')
+            .map(id => {
+                // Убираем запятые и пробелы, оставляем только ID
+                return id.replace(/,/g, '').trim();
+            })
+            .filter(id => id !== '');
+    }
+    
+    // Функция для обновления счетчиков
+    function updateCounters() {
+        const dealIds = getDealIds();
+        const realtorIds = getRealtorIds();
         
-        return realtorIds;
+        dealCounter.textContent = `Сделок: ${dealIds.length}`;
+        realtorCounter.textContent = `Риелторов: ${realtorIds.length}`;
+        
+        // Подсвечиваем счетчики если нет данных
+        dealCounter.className = dealIds.length === 0 ? 'counter highlight' : 'counter';
+        realtorCounter.className = realtorIds.length === 0 ? 'counter highlight' : 'counter';
     }
     
     // Функция для распределения сделок между риелторами
@@ -521,16 +433,16 @@
     
     // Инициализация при загрузке страницы
     window.addEventListener('load', function() {
-        // Добавляем обработчики событий к существующим элементам
-        const firstRealtorInput = document.querySelector('.realtor-input');
-        const firstAddBtn = document.querySelector('.add-btn');
-        const firstRemoveBtn = document.querySelector('.remove-btn');
-        const firstRealtorField = document.querySelector('.realtor-field');
+        // Добавляем обработчики событий к полям ввода
+        dealIdsInput.addEventListener('input', function() {
+            updateOutput();
+            updateCounters();
+        });
         
-        addRealtorEventListeners(firstRealtorInput, firstAddBtn, firstRemoveBtn, firstRealtorField);
-        
-        // Добавляем обработчик для поля сделок
-        dealIdsInput.addEventListener('input', updateOutput);
+        realtorIdsInput.addEventListener('input', function() {
+            updateOutput();
+            updateCounters();
+        });
         
         // Добавляем обработчик для кнопки копирования
         copyButton.addEventListener('click', copyToClipboard);
@@ -538,24 +450,11 @@
         // Добавляем обработчик для кнопки скачивания CSV
         csvButton.addEventListener('click', downloadCSV);
         
-        // Обновляем кнопки удаления
-        updateRemoveButtons();
-        
-        // Выполняем первоначальное обновление вывода
+        // Обновляем счетчики и вывод
+        updateCounters();
         updateOutput();
     });
 </script>
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
