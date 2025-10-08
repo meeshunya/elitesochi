@@ -149,13 +149,13 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            width: 160px;
+            width: 140px;
             min-height: 36px;
         }
         .copy-button:hover, .csv-button:hover {
@@ -175,6 +175,43 @@
         .copy-button:disabled, .csv-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        
+        /* Стили для кнопки очистки как в page2.html */
+        .clear-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 140px;
+            padding: 12px 20px;
+            background-color: #ffeded;
+            border: 1px solid #e74c3c;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-size: 13px;
+            font-weight: regular;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 36px;
+        }
+        .clear-btn:hover {
+            background-color: #ffabab;
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+        .clear-btn:active {
+            background-color: #ff5959;
+            color: white;
+        }
+        .clear-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            border-color: #999;
+            color: #999;
+        }
+        .clear-btn.cleared {
+            background-color: #e74c3c;
+            color: white;
         }
         
         @keyframes fadeIn {
@@ -223,6 +260,9 @@
                     <button class="copy-button" id="copyButton">
                         📋 Копировать
                     </button>
+                    <button class="clear-btn" id="clearButton">
+                        🗑️ Очистить
+                    </button>
                 </div>
             </div>
         </div>
@@ -236,6 +276,7 @@
     const outputField = document.getElementById('outputField');
     const copyButton = document.getElementById('copyButton');
     const csvButton = document.getElementById('csvButton');
+    const clearButton = document.getElementById('clearButton');
     const dealCounter = document.getElementById('dealCounter');
     const realtorCounter = document.getElementById('realtorCounter');
     
@@ -428,6 +469,34 @@
             alert('Не удалось создать файл для скачивания: ' + err.message);
         }
     }
+
+    // Функция для очистки всех полей с анимацией
+    function clearAllFields() {
+        const hasContent = dealIdsInput.value || realtorIdsInput.value || outputElement.textContent !== '-';
+        
+        if (!hasContent) {
+            alert('Нет данных для очистки');
+            return;
+        }
+        
+        // Очищаем поля сразу
+        dealIdsInput.value = '';
+        realtorIdsInput.value = '';
+        outputElement.textContent = '-';
+        outputField.className = 'info-field gray output-field';
+        
+        // Обновляем счетчики
+        updateCounters();
+        
+        // Анимация успеха
+        clearButton.innerHTML = '✅ Очищено!';
+        clearButton.classList.add('success-animation', 'cleared');
+        
+        setTimeout(() => {
+            clearButton.innerHTML = '🗑️ Очистить';
+            clearButton.classList.remove('success-animation', 'cleared');
+        }, 2000);
+    }
     
     // Инициализация при загрузке страницы
     window.addEventListener('load', function() {
@@ -447,6 +516,9 @@
         
         // Добавляем обработчик для кнопки скачивания CSV
         csvButton.addEventListener('click', downloadCSV);
+
+        // Добавляем обработчик для кнопки очистки
+        clearButton.addEventListener('click', clearAllFields);
         
         // Обновляем счетчики и вывод
         updateCounters();
@@ -454,6 +526,4 @@
     });
 </script>
 </body>
-
-
 </html>

@@ -40,7 +40,7 @@
             color: #555;
         }
         textarea {
-            height: 200px;
+            height: 180px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -57,22 +57,25 @@
             color: #666;
         }
         .copy-button {
-        padding: 12px 20px;
-        background: #fcfcfc;
-        color: #2c3e50;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 140px;
-        margin-top: 10px;
-        min-height: 36px;
+            padding: 12px 20px;
+            background: #fcfcfc;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 140px;          /* Фиксированная ширина */
+            min-width: 140px;      /* Минимальная ширина */
+            margin-top: 10px;
+            min-height: 36px;
+            white-space: nowrap;   /* Запрет переноса текста */
         }
+
         .copy-button:hover {
         background-color: #e0e0e0;
         }
@@ -103,6 +106,53 @@
         .success-animation {
             animation: fadeIn 0.3s ease;
         }
+
+        /* Стили для кнопки очистки */
+        .clear-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 140px;
+            padding: 12px 20px;
+            margin-top: 10px;
+            background-color: #ffeded;
+            border: 1px solid #e74c3c;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-size: 13px;
+            font-weight: regular;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 36px;
+        }
+        .clear-btn:hover {
+            background-color: #ffabab;
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+        .clear-btn:active {
+            background-color: #ff5959;
+            color: white;
+        }
+
+        .clear-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            border-color: #999;
+            color: #999;
+        }
+
+        .clear-btn.cleared {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        /* Контейнер для кнопок */
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -117,10 +167,19 @@
         <div class="field-group">
             <label for="output">Поле вывода (нередактируемое):</label>
             <textarea id="output" readonly placeholder="Здесь появятся извлеченные ID..."></textarea>
-            <button class="copy-button" id="copyButton">
-                📋 Копировать
-            </button>
+            
             <div class="stats" id="stats">Найдено ID: 0</div>
+
+            <div class="buttons-container">
+                <button class="copy-button" id="copyButton">
+                    📋 Копировать
+                </button>
+                
+                <button class="clear-btn" id="clearButton">
+                    🗑️ Очистить
+                </button>
+            </div> 
+            
         </div>
     </div>
 
@@ -129,8 +188,8 @@
             // Получаем текст из поля ввода
             const inputText = document.getElementById('input').value;
             
-            // Регулярное выражение для поиска 7-8 значных чисел
-            const regex = /\b\d{7,8}\b/g;
+            // Регулярное выражение для поиска 6-7 значных чисел
+            const regex = /\b\d{6,7}\b/g;
             
             // Находим все совпадения
             const matches = inputText.match(regex);
@@ -214,6 +273,32 @@
             }
         }
 
+        // Функция для очистки всех полей с анимацией
+        // Функция для очистки всех полей с анимацией
+        function clearAllFields() {
+            const clearButton = document.getElementById('clearButton');
+            const hasContent = document.getElementById('input').value || document.getElementById('output').value;
+            
+            if (!hasContent) {
+                alert('Нет данных для очистки');
+                return;
+            }
+            
+            // Очищаем поля сразу
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('stats').textContent = 'Найдено ID: 0';
+            
+            // Анимация успеха
+            clearButton.innerHTML = '✅ Очищено!';
+            clearButton.classList.add('success-animation', 'cleared');
+            
+            setTimeout(() => {
+                clearButton.innerHTML = '🗑️ Очистить';
+                clearButton.classList.remove('success-animation', 'cleared');
+            }, 2000);
+        }
+
         // Обрабатываем текст при любом изменении в поле ввода
         document.getElementById('input').addEventListener('input', processText);
         
@@ -222,6 +307,9 @@
         
         // Добавляем обработчик для кнопки копирования
         document.getElementById('copyButton').addEventListener('click', copyToClipboard);
+
+        // Добавляем обработчик для кнопки очистки
+        document.getElementById('clearButton').addEventListener('click', clearAllFields);
 
         // Также добавляем возможность вставки через Ctrl+V в основное поле
         document.getElementById('input').addEventListener('paste', function(e) {
@@ -232,8 +320,3 @@
 </body>
 
 </html>
-
-
-
-
-

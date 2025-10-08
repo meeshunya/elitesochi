@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 650px;
+            max-width: 1000px;
             margin: 5px auto;
             padding: 10px;
             background-color: #f5f7f9;
@@ -30,13 +30,15 @@
             font-size: 24px;
         }
         .file-drop-area {
-            margin-bottom: 20px;
-            padding: 10px;
+            margin: 12px 0;
+            padding: 10.5px;
             border: 2px dashed #ccc;
             border-radius: 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
         .file-drop-area:hover, .file-drop-area.dragover {
             border-color: #3498db;
@@ -44,7 +46,7 @@
         }
         .file-drop-text {
             color: #666;
-            font-size: 16px;
+            font-size: 14px;
         }
         .file-drop-text i {
             color: #3498db;
@@ -65,6 +67,8 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
         .info-field.gray {
             border-left-color: #95a5a6;
@@ -121,7 +125,7 @@
             background-color: #fdedec;
         }
         .input-field.auto-filled {
-            color: #7f8c8d; /* Серый цвет для автоматически заполненных полей */
+            color: #7f8c8d;
         }
         .copy-btn {
             background: none;
@@ -184,11 +188,9 @@
             font-size: 16px;
             transition: color 0.2s ease;
         }
-        /* Серый текст когда полоска серая */
         .info-field.gray #description {
             color: #bababa;
         }
-        /* Черный текст когда полоска зеленая */
         .info-field.green #description {
             color: #000000;
         }
@@ -211,67 +213,144 @@
             margin-top: 4px;
             display: none;
         }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .success-animation {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* НОВАЯ СТРУКТУРА С ЛЕВОЙ И ПРАВОЙ КОЛОНКАМИ */
+        .columns-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .left-column, .right-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-width-section {
+            width: 100%;
+        }
+
+        /* Стили для кнопки очистки */
+        .clear-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 140px;
+            padding: 12px 20px;
+            margin: 10px auto 0 auto;
+            background-color: #ffeded;
+            border: 1px solid #e74c3c;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-size: 13px;
+            font-weight: regular;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 36px;
+        }
+        .clear-btn:hover {
+            background-color: #ffabab;
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+        .clear-btn:active {
+            background-color: #ff5959;
+            color: white;
+        }
+        .clear-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            border-color: #999;
+            color: #999;
+        }
+        .clear-btn.cleared {
+            background-color: #e74c3c;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Формирование описания звонка</h1>
         
-        <div class="file-drop-area" id="fileDropArea">
-            <input type="file" id="fileInput" class="file-input" accept=".mp3" />
-            <div class="file-drop-text">
-                <i>📁</i>
-                Нажмите для выбора файла или перетащите MP3 файл сюда
+        <!-- Двухколоночный контейнер -->
+        <div class="columns-container">
+            <!-- Левый столбец -->
+            <div class="left-column">
+                <!-- Поле загрузки файла -->
+                <div class="file-drop-area" id="fileDropArea">
+                    <input type="file" id="fileInput" class="file-input" accept=".mp3" />
+                    <div class="file-drop-text">
+                        <i>📁</i>
+                        Нажмите для выбора файла или перетащите MP3 файл сюда
+                    </div>
+                </div>
+                
+                <!-- Дата и время -->
+                <div class="info-field gray" id="dateTimeField">
+                    <div class="info-content">
+                        <div class="info-label">Дата и время:</div>
+                        <input type="text" id="dateTime" class="input-field" placeholder="Введите дату и время (AM/PM)">
+                        <div class="hint">Введите время в 12-часовом формате</div>
+                        <div class="error-hint" id="dateTimeError">Неверный формат даты и времени</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyInputToClipboard('dateTime', this)">📋</button>
+                </div>
+                
+                <!-- ID риелтора -->
+                <div class="info-field gray" id="realtorIdField">
+                    <div class="info-content">
+                        <div class="info-label">ID риелтора:</div>
+                        <input type="text" id="realtorId" class="input-field" placeholder="Введите ID риелтора">
+                        <div class="error-hint" id="realtorIdError">ID риелтора должен содержать только цифры</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyInputToClipboard('realtorId', this)">📋</button>
+                </div>
+            </div>
+            
+            <!-- Правый столбец -->
+            <div class="right-column">
+                <!-- Название файла -->
+                <div class="info-field gray" id="fileNameField">
+                    <div class="info-content">
+                        <div class="info-label">Название файла:</div>
+                        <input type="text" id="modifiedFileName" class="input-field" placeholder="Название файла" readonly>
+                    </div>
+                    <button class="copy-btn" onclick="copyInputToClipboard('modifiedFileName', this)">📋</button>
+                </div>
+
+                <!-- Размер файла -->
+                <div class="info-field gray" id="fileSizeField">
+                    <div class="info-content">
+                        <div class="info-label">Размер файла:</div>
+                        <div class="readonly-field" id="fileSize">-</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyToClipboard('fileSize', this)">📋</button>
+                </div>
+
+                <!-- Длительность -->
+                <div class="info-field gray" id="durationField">
+                    <div class="info-content">
+                        <div class="info-label">Длительность (мин:сек):</div>
+                        <input type="text" id="duration" class="input-field" placeholder="Введите длительность, например: 5:23">
+                        <div class="hint">Введите длительность в формате минуты:секунды</div>
+                        <div class="duration-info" id="durationInfo">Длительность файла была определена автоматически.</div>
+                        <div class="error-hint" id="durationError">Неверный формат. Используйте формат: мм:сс (например: 5:23)</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyInputToClipboard('duration', this)">📋</button>
+                </div>
             </div>
         </div>
         
-        <div id="fileInfo">
-            <div class="info-field gray" id="fileNameField">
-                <div class="info-content">
-                    <div class="info-label">Название файла:</div>
-                    <input type="text" id="modifiedFileName" class="input-field" placeholder="Название файла" readonly>
-                </div>
-                <button class="copy-btn" onclick="copyInputToClipboard('modifiedFileName', this)">📋</button>
-            </div>
-            
-            <div class="info-field gray" id="durationField">
-                <div class="info-content">
-                    <div class="info-label">Длительность (мин:сек):</div>
-                    <input type="text" id="duration" class="input-field" placeholder="Введите длительность, например: 5:23">
-                    <div class="hint">Введите длительность в формате минуты:секунды</div>
-                    <div class="duration-info" id="durationInfo">Автоматически определена длительность из файла. Нажмите на поле для ручного ввода</div>
-                    <div class="error-hint" id="durationError">Неверный формат. Используйте формат: мм:сс (например: 5:23)</div>
-                </div>
-                <button class="copy-btn" onclick="copyInputToClipboard('duration', this)">📋</button>
-            </div>
-            
-            <div class="info-field gray" id="fileSizeField">
-                <div class="info-content">
-                    <div class="info-label">Размер файла:</div>
-                    <div class="readonly-field" id="fileSize">-</div>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('fileSize', this)">📋</button>
-            </div>
-
-            <div class="info-field gray" id="realtorIdField">
-                <div class="info-content">
-                    <div class="info-label">ID риелтора:</div>
-                    <input type="text" id="realtorId" class="input-field" placeholder="Введите ID риелтора">
-                    <div class="error-hint" id="realtorIdError">ID риелтора должен содержать только цифры</div>
-                </div>
-                <button class="copy-btn" onclick="copyInputToClipboard('realtorId', this)">📋</button>
-            </div>
-
-            <div class="info-field gray" id="dateTimeField">
-                <div class="info-content">
-                    <div class="info-label">Дата и время:</div>
-                    <input type="text" id="dateTime" class="input-field" placeholder="Введите дату и время (AM/PM)">
-                    <div class="hint">Введите время в 12-часовом формате (например: 20.09.2025 02:30 PM или 20.09.2025 02:30:45 PM)</div>
-                    <div class="error-hint" id="dateTimeError">Неверный формат даты и времени</div>
-                </div>
-                <button class="copy-btn" onclick="copyInputToClipboard('dateTime', this)">📋</button>
-            </div>
-
+        <!-- Поле описания (полная ширина) -->
+        <div class="full-width-section">
             <div class="info-field gray" id="descriptionField">
                 <div class="info-content">
                     <div class="info-label">Описание:</div>
@@ -280,6 +359,11 @@
                 <button class="copy-btn" onclick="copyToClipboard('description', this)">📋</button>
             </div>
         </div>
+        
+        <!-- Кнопка очистки -->
+        <button class="clear-btn" onclick="clearAllFields()">
+            🗑️ Очистить
+        </button>
         
         <div class="success-message" id="successMessage">
             Файл успешно обработан!
@@ -303,8 +387,65 @@
         let currentRealtorId = '';
         let currentDateTime = '';
         let isFileLoaded = false;
-        let autoDuration = ''; // Автоматически определенная длительность
-        let isManualInput = false; // Флаг ручного ввода
+        let autoDuration = '';
+        let isManualInput = false;
+
+        // Функция для очистки всех полей с анимацией
+        function clearAllFields() {
+            const clearButton = document.querySelector('.clear-btn');
+            const hasContent = 
+                document.getElementById('fileInput').value || 
+                document.getElementById('modifiedFileName').value || 
+                document.getElementById('duration').value || 
+                document.getElementById('realtorId').value || 
+                document.getElementById('dateTime').value;
+            
+            if (!hasContent) {
+                alert('Нет данных для очистки');
+                return;
+            }
+            
+            // Очищаем поля сразу
+            fileInput.value = '';
+            fileNameInput.value = '';
+            durationInput.value = '';
+            realtorIdInput.value = '';
+            dateTimeInput.value = '';
+            document.getElementById('fileSize').textContent = '-';
+            document.getElementById('description').textContent = '-';
+            
+            // Сбрасываем переменные
+            currentFileName = '';
+            currentFileSize = '';
+            currentDuration = '';
+            currentRealtorId = '';
+            currentDateTime = '';
+            isFileLoaded = false;
+            autoDuration = '';
+            isManualInput = false;
+            
+            // Скрываем информационные сообщения
+            durationInfo.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Убираем классы ошибок
+            durationInput.classList.remove('error');
+            realtorIdInput.classList.remove('error');
+            dateTimeInput.classList.remove('error');
+            
+            // Сбрасываем стили полей
+            updateFieldColors();
+            updateDurationFieldStyle();
+            
+            // Анимация успеха
+            clearButton.innerHTML = '✅ Очищено!';
+            clearButton.classList.add('success-animation', 'cleared');
+            
+            setTimeout(() => {
+                clearButton.innerHTML = '🗑️ Очистить';
+                clearButton.classList.remove('success-animation', 'cleared');
+            }, 2000);
+        }
 
         // Обработчик клика по области
         fileDropArea.addEventListener('click', function() {
@@ -359,7 +500,6 @@
         // Обработчики для поля длительности
         durationInput.addEventListener('focus', function() {
             if (!isManualInput && autoDuration) {
-                // При фокусе очищаем поле, если это автоматическая длительность
                 durationInput.value = '';
                 isManualInput = true;
                 durationInfo.style.display = 'none';
@@ -369,7 +509,6 @@
 
         durationInput.addEventListener('blur', function() {
             if (!durationInput.value.trim() && autoDuration) {
-                // Если поле пустое и есть автоматическая длительность - восстанавливаем её
                 durationInput.value = autoDuration;
                 isManualInput = false;
                 durationInfo.style.display = 'block';
@@ -417,11 +556,9 @@
         // Функция для обновления стиля поля длительности
         function updateDurationFieldStyle() {
             if (isManualInput) {
-                // Ручной ввод - черный текст
                 durationInput.classList.remove('auto-filled');
                 durationInput.style.color = '#000000';
             } else {
-                // Автоматическое заполнение - серый текст
                 durationInput.classList.add('auto-filled');
                 durationInput.style.color = '#7f8c8d';
             }
@@ -440,7 +577,6 @@
                 });
                 
                 audio.addEventListener('error', function() {
-                    // Если не удалось определить длительность, возвращаем 0
                     URL.revokeObjectURL(url);
                     resolve(0);
                 });
@@ -559,12 +695,9 @@
             // Длительность - специальная логика для синей полоски
             if (durationInput.value.trim()) {
                 if (validateDuration()) {
-                    // Если поле заполнено и валидно
                     if (!isManualInput && autoDuration) {
-                        // Автоматически заполненная длительность - синяя полоска
                         durationField.className = 'info-field blue';
                     } else {
-                        // Ручной ввод - зеленая полоска
                         durationField.className = 'info-field green';
                     }
                 } else {
@@ -598,7 +731,6 @@
             
             descriptionField.className = allFieldsValid ? 'info-field green' : 'info-field gray';
             
-            // Обновляем цвет текста описания в зависимости от цвета полоски
             updateDescriptionTextColor();
         }
 
@@ -606,9 +738,6 @@
         function updateDescriptionTextColor() {
             const descriptionField = document.getElementById('descriptionField');
             const descriptionElement = document.getElementById('description');
-            
-            // Цвет текста будет автоматически меняться через CSS в зависимости от класса поля
-            // CSS правила уже настроены для классов .info-field.gray #description и .info-field.green #description
         }
 
         // Функция для удаления "in-" из начала названия файла
@@ -623,20 +752,16 @@
             const file = files[0];
             
             if (file && (file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3'))) {
-                // Убираем "in-" из начала названия файла
                 const cleanedFileName = removeInPrefix(file.name);
                 
-                // Сохраняем и отображаем название файла
                 currentFileName = cleanedFileName;
                 fileNameInput.value = currentFileName;
                 
-                // Сохраняем и отображаем размер файла
                 const sizeKB = (file.size / 1024).toFixed(2);
                 const sizeBytes = file.size;
                 currentFileSize = `${sizeBytes} Б`;
                 document.getElementById('fileSize').textContent = `${sizeKB} КБ (${sizeBytes} Б)`;
                 
-                // Определяем длительность аудиофайла
                 try {
                     const durationInSeconds = await getAudioDuration(file);
                     autoDuration = formatDuration(durationInSeconds);
@@ -652,22 +777,19 @@
                     durationInfo.style.display = 'none';
                 }
                 
-                // Устанавливаем флаг загрузки файла
                 isFileLoaded = true;
                 
-                // Показываем сообщение об успешной загрузке
                 successMessage.style.display = 'block';
                 setTimeout(() => {
                     successMessage.style.display = 'none';
                 }, 3000);
                 
-                // Обновляем цвета полей и описание
                 updateFieldColors();
                 updateDescription();
                 
             } else {
                 alert('Пожалуйста, выберите MP3 файл');
-                fileInput.value = ''; // Сбрасываем input
+                fileInput.value = '';
                 isFileLoaded = false;
                 autoDuration = '';
                 isManualInput = false;
@@ -681,7 +803,6 @@
         function convertTimeFormat(inputElement) {
             let timeString = inputElement.value.trim();
             
-            // Регулярные выражения для поиска времени в 12-часовом формате
             const timeRegex1 = /(\d{1,2})\.(\d{1,2})\.(\d{4}) (\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)/i;
             const timeRegex2 = /(\d{1,2})\.(\d{1,2})\.(\d{4}) (\d{1,2}):(\d{2})\s*(AM|PM)/i;
             
@@ -702,22 +823,18 @@
                 const seconds = hasSeconds ? match[6] : '00';
                 const period = match[hasSeconds ? 7 : 6].toUpperCase();
                 
-                // Преобразуем в 24-часовой формат
                 if (period === 'PM' && hours !== 12) {
                     hours += 12;
                 } else if (period === 'AM' && hours === 12) {
                     hours = 0;
                 }
                 
-                // Форматируем часы к двузначному формату
                 const hours24 = hours.toString().padStart(2, '0');
                 
-                // Формируем результат
                 const result = hasSeconds 
                     ? `${day}.${month}.${year} ${hours24}:${minutes}:${seconds}`
                     : `${day}.${month}.${year} ${hours24}:${minutes}`;
                 
-                // Заменяем время в строке
                 inputElement.value = result;
             }
             
@@ -739,21 +856,19 @@
 
         // Функция для извлечения даты из строки даты и времени
         function extractDateFromDateTime(dateTimeString) {
-            if (!dateTimeString) return 'ГГГГ/ММ/ДД'; // Значение по умолчанию
+            if (!dateTimeString) return 'ГГГГ/ММ/ДД';
             
-            // Регулярное выражение для извлечения даты в формате ДД.ММ.ГГГГ
             const dateRegex = /(\d{1,2})\.(\d{1,2})\.(\d{4})/;
             const match = dateTimeString.match(dateRegex);
             
             if (match) {
-                // Убираем ведущие нули у дня и месяца
                 const day = match[1].replace(/^0+/, '');
                 const month = match[2].replace(/^0+/, '');
                 const year = match[3];
                 return `${year}/${month}/${day}`;
             }
             
-            return 'ГГГГ/ММ/ДД'; // Значение по умолчанию, если не удалось извлечь дату
+            return 'ГГГГ/ММ/ДД';
         }
 
         // Функция для обновления описания
@@ -764,13 +879,10 @@
             
             const durationSeconds = timeToSeconds(currentDuration);
             
-            // Извлекаем дату из поля "Дата и время"
             const datePath = extractDateFromDateTime(currentDateTime);
             
-            // Формируем описание по заданному шаблону (без тега <a> и текста ссылки)
             let description = `Продолжительность звонка: ${durationSeconds} сек. Общая длительность: ${durationSeconds}сек. <a href='/upload/aster/${datePath}/${currentFileName}'(${currentFileSize}) <user_id>${currentRealtorId}</user_id>`;
             
-            // Обновляем поле описания
             document.getElementById('description').textContent = description;
         }
 
@@ -830,24 +942,4 @@
         });
     </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
