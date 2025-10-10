@@ -32,6 +32,7 @@
         }
         .field-group {
             margin-bottom: 20px;
+            position: relative;
         }
         label {
             display: block;
@@ -39,22 +40,55 @@
             font-weight: bold;
             color: #555;
         }
-        textarea {
+        .textarea-container {
+            position: relative;
             height: 180px;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-family: monospace;
             resize: vertical;
-            width: 100%;
             box-sizing: border-box;
+            line-height: 1.5;
         }
         #input {
             background-color: white;
         }
-        #output {
+        .output-container {
             background-color: #e8e8e8;
-            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: monospace;
+            line-height: 1.5;
+        }
+        .output-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .line-number-cell {
+            width: 20px;
+            color: #888;
+            font-size: 12px;
+            text-align: right;
+            padding-right: 10px;
+            vertical-align: top;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            border-right: 1px solid #ccc;
+        }
+        .id-cell {
+            padding-left: 10px;
+            vertical-align: top;
+            word-break: break-all;
         }
         .copy-button {
             padding: 12px 20px;
@@ -69,27 +103,27 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            width: 140px;          /* Фиксированная ширина */
-            min-width: 140px;      /* Минимальная ширина */
+            width: 140px;
+            min-width: 140px;
             margin-top: 10px;
             min-height: 36px;
-            white-space: nowrap;   /* Запрет переноса текста */
+            white-space: nowrap;
         }
 
         .copy-button:hover {
-        background-color: #e0e0e0;
+            background-color: #e0e0e0;
         }
         .copy-button:active {
             transform: none;
         }
         .copy-button.copied {
-        background-color: #2ecc71;
-        color: white;
+            background-color: #2ecc71;
+            color: white;
         }
 
         .copy-button:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
         .stats {
             margin-top: 10px;
@@ -99,6 +133,13 @@
             font-size: 13px;
             color: #666;
         }
+        .duplicates-warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .duplicates-line-numbers {
+            color: #ff8787;
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.8); }
             to { opacity: 1; transform: scale(1); }
@@ -107,7 +148,6 @@
             animation: fadeIn 0.3s ease;
         }
 
-        /* Стили для кнопки очистки */
         .clear-btn {
             display: flex;
             align-items: center;
@@ -147,7 +187,6 @@
             color: white;
         }
 
-        /* Контейнер для кнопок */
         .buttons-container {
             display: flex;
             justify-content: space-between;
@@ -161,14 +200,21 @@
         
         <div class="field-group">
             <label for="input">Поле ввода (редактируемое):</label>
-            <textarea id="input" placeholder="Введите текст здесь..."></textarea>
+            <div class="textarea-container">
+                <textarea id="input" placeholder="Введите текст здесь..."></textarea>
+            </div>
         </div>
         
         <div class="field-group">
-            <label for="output">Поле вывода (нередактируемое):</label>
-            <textarea id="output" readonly placeholder="Здесь появятся извлеченные ID..."></textarea>
+            <label>Поле вывода (нередактируемое):</label>
+            <div class="output-container" id="outputContainer">
+                <table class="output-table" id="outputTable">
+                    <!-- Таблица будет заполняться через JavaScript -->
+                </table>
+            </div>
             
             <div class="stats" id="stats">Найдено ID: 0</div>
+            <div class="stats" id="duplicates">Найдено дублей: 0</div>
 
             <div class="buttons-container">
                 <button class="copy-button" id="copyButton">
@@ -184,52 +230,111 @@
     </div>
 
     <script>
+        function findDuplicates(matches) {
+            const duplicates = {};
+            const lineNumbers = {};
+            
+            for (let i = 0; i < matches.length; i++) {
+                const id = matches[i];
+                if (!lineNumbers[id]) {
+                    lineNumbers[id] = [];
+                }
+                lineNumbers[id].push(i + 1);
+            }
+            
+            for (const id in lineNumbers) {
+                if (lineNumbers[id].length > 1) {
+                    duplicates[id] = lineNumbers[id];
+                }
+            }
+            
+            return duplicates;
+        }
+
         function processText() {
-            // Получаем текст из поля ввода
             const inputText = document.getElementById('input').value;
-            
-            // Регулярное выражение для поиска 6-7 значных чисел
             const regex = /\b\d{6,7}\b/g;
-            
-            // Находим все совпадения
             const matches = inputText.match(regex);
             
-            // Получаем поле вывода и статистику
-            const outputField = document.getElementById('output');
+            const outputTable = document.getElementById('outputTable');
             const stats = document.getElementById('stats');
+            const duplicatesElement = document.getElementById('duplicates');
             
-            // Если найдены совпадения, выводим их с запятыми
+            // Очищаем таблицу
+            outputTable.innerHTML = '';
+            
             if (matches) {
-                // Добавляем запятую после каждого ID, кроме последнего
-                const outputText = matches.map((id, index) => {
-                    return index === matches.length - 1 ? id : id + ',';
-                }).join('\n');
+                // Заполняем таблицу
+                matches.forEach((id, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const lineNumberCell = document.createElement('td');
+                    lineNumberCell.className = 'line-number-cell';
+                    lineNumberCell.textContent = (index + 1);
+                    
+                    const idCell = document.createElement('td');
+                    idCell.className = 'id-cell';
+                    idCell.textContent = id + (index === matches.length - 1 ? '' : ',');
+                    
+                    row.appendChild(lineNumberCell);
+                    row.appendChild(idCell);
+                    outputTable.appendChild(row);
+                });
                 
-                outputField.value = outputText;
                 stats.textContent = `Найдено ID: ${matches.length}`;
+                
+                const duplicates = findDuplicates(matches);
+                const duplicateCount = Object.keys(duplicates).length;
+                
+                if (duplicateCount > 0) {
+                    let duplicateInfo = [];
+                    
+                    for (const id in duplicates) {
+                        const lineNumbers = duplicates[id].map(num => 
+                            `<span class="duplicates-line-numbers">${num}</span>`
+                        ).join('<span class="duplicates-line-numbers"> и </span>');
+                        duplicateInfo.push(`<span class="duplicates-line-numbers">Строки:</span> ${lineNumbers}`);
+                    }
+                    
+                    duplicatesElement.innerHTML = `Найдено дублей: <span class="duplicates-warning">${duplicateCount}</span> (<span class="duplicates-warning">${duplicateInfo.join('; ')}</span>)`;
+                } else {
+                    duplicatesElement.textContent = 'Найдено дублей: 0';
+                    duplicatesElement.innerHTML = duplicatesElement.textContent;
+                }
             } else {
-                outputField.value = '';
                 stats.textContent = 'Найдено ID: 0';
+                duplicatesElement.textContent = 'Найдено дублей: 0';
+                duplicatesElement.innerHTML = duplicatesElement.textContent;
             }
         }
 
         // Функция для копирования текста в буфер обмена
         async function copyToClipboard() {
-            const outputText = document.getElementById('output').value;
-            const copyButton = document.getElementById('copyButton');
+            const outputTable = document.getElementById('outputTable');
+            const rows = outputTable.getElementsByTagName('tr');
+            let outputText = '';
             
-            if (!outputText) {
+            // Собираем текст из таблицы (только ID)
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 1) {
+                    outputText += cells[1].textContent + '\n';
+                }
+            }
+            
+            if (!outputText.trim()) {
                 alert('Нет данных для копирования');
                 return;
             }
+            
+            const copyButton = document.getElementById('copyButton');
             
             try {
                 copyButton.disabled = true;
                 copyButton.innerHTML = '⏳ Копирование...';
                 
-                await navigator.clipboard.writeText(outputText);
+                await navigator.clipboard.writeText(outputText.trim());
                 
-                // Анимация успеха
                 copyButton.innerHTML = '✅ Скопировано!';
                 copyButton.classList.add('success-animation', 'copied');
                 
@@ -241,15 +346,15 @@
                 
             } catch (err) {
                 // Fallback для старых браузеров
-                const outputField = document.getElementById('output');
-                outputField.select();
-                outputField.setSelectionRange(0, 99999); // Для мобильных устройств
+                const textArea = document.createElement('textarea');
+                textArea.value = outputText.trim();
+                document.body.appendChild(textArea);
+                textArea.select();
                 
                 try {
                     const successful = document.execCommand('copy');
                     
                     if (successful) {
-                        // Анимация успеха
                         copyButton.innerHTML = '✅ Скопировано!';
                         copyButton.classList.add('success-animation', 'copied');
                         
@@ -265,31 +370,28 @@
                 } catch (err) {
                     copyButton.innerHTML = '📋 Копировать';
                     copyButton.disabled = false;
-                    
-                    // Альтернативный способ копирования
-                    outputField.select();
-                    alert('Не удалось скопировать текст автоматически. Текст выделен - пожалуйста, скопируйте его вручную (Ctrl+C).');
+                    alert('Не удалось скопировать текст автоматически. Пожалуйста, скопируйте текст вручную.');
                 }
+                
+                document.body.removeChild(textArea);
             }
         }
 
-        // Функция для очистки всех полей с анимацией
-        // Функция для очистки всех полей с анимацией
         function clearAllFields() {
             const clearButton = document.getElementById('clearButton');
-            const hasContent = document.getElementById('input').value || document.getElementById('output').value;
+            const hasContent = document.getElementById('input').value || document.getElementById('outputTable').rows.length > 0;
             
             if (!hasContent) {
                 alert('Нет данных для очистки');
                 return;
             }
             
-            // Очищаем поля сразу
             document.getElementById('input').value = '';
-            document.getElementById('output').value = '';
+            document.getElementById('outputTable').innerHTML = '';
             document.getElementById('stats').textContent = 'Найдено ID: 0';
+            document.getElementById('duplicates').textContent = 'Найдено дублей: 0';
+            document.getElementById('duplicates').innerHTML = document.getElementById('duplicates').textContent;
             
-            // Анимация успеха
             clearButton.innerHTML = '✅ Очищено!';
             clearButton.classList.add('success-animation', 'cleared');
             
@@ -299,21 +401,16 @@
             }, 2000);
         }
 
-        // Обрабатываем текст при любом изменении в поле ввода
         document.getElementById('input').addEventListener('input', processText);
         
-        // Обрабатываем текст при загрузке страницы (на случай если есть начальные данные)
-        window.addEventListener('load', processText);
+        window.addEventListener('load', function() {
+            processText();
+        });
         
-        // Добавляем обработчик для кнопки копирования
         document.getElementById('copyButton').addEventListener('click', copyToClipboard);
-
-        // Добавляем обработчик для кнопки очистки
         document.getElementById('clearButton').addEventListener('click', clearAllFields);
 
-        // Также добавляем возможность вставки через Ctrl+V в основное поле
         document.getElementById('input').addEventListener('paste', function(e) {
-            // Даем время на вставку, затем обрабатываем
             setTimeout(processText, 100);
         });
     </script>
