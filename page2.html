@@ -336,7 +336,13 @@
                     
                     const idCell = document.createElement('td');
                     idCell.className = 'id-cell';
-                    idCell.textContent = id;
+                    
+                    // Добавляем запятую ко всем строкам, кроме последней
+                    if (index < matches.length - 1) {
+                        idCell.textContent = id + ',';
+                    } else {
+                        idCell.textContent = id;
+                    }
                     
                     row.appendChild(lineNumberCell);
                     row.appendChild(idCell);
