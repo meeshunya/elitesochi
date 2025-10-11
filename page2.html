@@ -12,7 +12,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 15px;
             background-color: #f5f7f9;
@@ -23,15 +23,28 @@
             border-radius: 10px;
             border: 2px solid #ddd;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .fields-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .input-section, .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
             font-size: 24px;
+            width: 100%;
         }
         .field-group {
-            margin-bottom: 20px;
+            margin-bottom: 0px;
             position: relative;
         }
         label {
@@ -42,16 +55,19 @@
         }
         .textarea-container {
             position: relative;
-            height: 180px;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
         }
         textarea {
             width: 100%;
             height: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: none;
+            border-radius: 0;
             font-family: monospace;
-            resize: vertical;
+            resize: none;
             box-sizing: border-box;
             line-height: 1.5;
         }
@@ -63,14 +79,22 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             padding: 10px;
-            height: 180px;
+            height: 400px;
             overflow-y: auto;
             font-family: monospace;
             line-height: 1.5;
+            box-sizing: border-box;
+            display: block;
         }
         .output-table {
             width: 100%;
             border-collapse: collapse;
+            height: auto;
+            vertical-align: top;
+        }
+        .output-table-wrapper {
+            height: auto;
+            overflow: auto;
         }
         .line-number-cell {
             width: 20px;
@@ -84,11 +108,19 @@
             -moz-user-select: none;
             -ms-user-select: none;
             border-right: 1px solid #ccc;
+            padding-top: 4px;
+            padding-bottom: 4px;
         }
         .id-cell {
             padding-left: 10px;
             vertical-align: top;
             word-break: break-all;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+        .output-table tr {
+            vertical-align: top;
+            height: auto;
         }
         .copy-button {
             padding: 12px 20px;
@@ -105,7 +137,6 @@
             gap: 8px;
             width: 140px;
             min-width: 140px;
-            margin-top: 10px;
             min-height: 36px;
             white-space: nowrap;
         }
@@ -126,12 +157,13 @@
             cursor: not-allowed;
         }
         .stats {
-            margin-top: 10px;
             padding: 8px;
             background-color: #f0f0f0;
             border-radius: 4px;
             font-size: 13px;
             color: #666;
+            width: 98.6%;
+            text-align: left;
         }
         .duplicates-warning {
             color: #e74c3c;
@@ -155,7 +187,6 @@
             gap: 8px;
             width: 140px;
             padding: 12px 20px;
-            margin-top: 10px;
             background-color: #ffeded;
             border: 1px solid #e74c3c;
             border-radius: 4px;
@@ -191,31 +222,62 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+        }
+        
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .fields-row {
+                flex-direction: column;
+            }
+            .buttons-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .copy-button, .clear-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
+    <h1>Извлечение ID из текста</h1>
+    
     <div class="container">
-        <h1>Извлечение ID из текста</h1>
-        
-        <div class="field-group">
-            <label for="input">Поле ввода (редактируемое):</label>
-            <div class="textarea-container">
-                <textarea id="input" placeholder="Введите текст здесь..."></textarea>
+        <div class="fields-row">
+            <div class="input-section">
+                <div class="field-group">
+                    <label for="input">Поле ввода (редактируемое):</label>
+                    <div class="textarea-container">
+                        <textarea id="input" placeholder="Введите текст здесь..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="field-group">
+                    <label>Поле вывода (нередактируемое):</label>
+                    <div class="output-container" id="outputContainer">
+                        <div class="output-table-wrapper">
+                            <table class="output-table" id="outputTable">
+                                <!-- Таблица будет заполняться через JavaScript -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="field-group">
-            <label>Поле вывода (нередактируемое):</label>
-            <div class="output-container" id="outputContainer">
-                <table class="output-table" id="outputTable">
-                    <!-- Таблица будет заполняться через JavaScript -->
-                </table>
-            </div>
-            
+        <!-- Статистика и кнопки расположены под обоими полями -->
+        <div class="stats-container">
             <div class="stats" id="stats">Найдено ID: 0</div>
             <div class="stats" id="duplicates">Найдено дублей: 0</div>
-
+            
             <div class="buttons-container">
                 <button class="copy-button" id="copyButton">
                     📋 Копировать
@@ -224,8 +286,7 @@
                 <button class="clear-btn" id="clearButton">
                     🗑️ Очистить
                 </button>
-            </div> 
-            
+            </div>
         </div>
     </div>
 
@@ -274,7 +335,7 @@
                     
                     const idCell = document.createElement('td');
                     idCell.className = 'id-cell';
-                    idCell.textContent = id + (index === matches.length - 1 ? '' : ',');
+                    idCell.textContent = id;
                     
                     row.appendChild(lineNumberCell);
                     row.appendChild(idCell);
@@ -318,7 +379,7 @@
             for (let i = 0; i < rows.length; i++) {
                 const cells = rows[i].getElementsByTagName('td');
                 if (cells.length > 1) {
-                    outputText += cells[1].textContent + '\n';
+                    outputText += cells[1].textContent + (i < rows.length - 1 ? '\n' : '');
                 }
             }
             
@@ -415,5 +476,4 @@
         });
     </script>
 </body>
-
 </html>
