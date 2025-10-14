@@ -232,7 +232,9 @@
                 <div class="info-field">
                     <div class="info-content">
                         <div class="info-label">ID сделок:</div>
-                        <textarea id="dealIds" class="input-field" placeholder="Введите ID сделок, каждый с новой строки"></textarea>
+                        <textarea id="dealIds" class="input-field" placeholder="Введите ID сделок:
+- Каждый с новой строки
+- Или через запятую: 123,456,789"></textarea>
                         <div class="counter" id="dealCounter">Сделок: 0</div>
                     </div>
                 </div>
@@ -242,7 +244,9 @@
                 <div class="info-field">
                     <div class="info-content">
                         <div class="info-label">ID риелторов:</div>
-                        <textarea id="realtorIds" class="input-field" placeholder="Введите ID риелторов, каждый с новой строки"></textarea>
+                        <textarea id="realtorIds" class="input-field" placeholder="Введите ID риелторов:
+- Каждый с новой строки  
+- Или через запятую: 101,102,103"></textarea>
                         <div class="counter" id="realtorCounter">Риелторов: 0</div>
                     </div>
                 </div>
@@ -280,29 +284,43 @@
     const dealCounter = document.getElementById('dealCounter');
     const realtorCounter = document.getElementById('realtorCounter');
     
-    // Функция для получения ID сделок
+    // Функция для получения ID сделок (поддержка двух форматов)
     function getDealIds() {
         const text = dealIdsInput.value.trim();
         if (!text) return [];
         
-        // Разделяем по переносам строк и фильтруем пустые значения
-        return text.split('\n')
-            .map(id => id.trim())
-            .filter(id => id !== '');
+        // Если есть запятые - обрабатываем как список через запятые
+        if (text.includes(',')) {
+            return text.split(',')
+                .map(id => id.trim())
+                .filter(id => id !== '');
+        } else {
+            // Иначе обрабатываем как список через переносы строк
+            return text.split('\n')
+                .map(id => id.trim())
+                .filter(id => id !== '');
+        }
     }
     
-    // Функция для получения ID риелторов
+    // Функция для получения ID риелторов (поддержка двух форматов)
     function getRealtorIds() {
         const text = realtorIdsInput.value.trim();
         if (!text) return [];
         
-        // Разделяем по переносам строк и фильтруем пустые значения
-        return text.split('\n')
-            .map(id => {
-                // Убираем запятые и пробелы, оставляем только ID
-                return id.replace(/,/g, '').trim();
-            })
-            .filter(id => id !== '');
+        // Если есть запятые - обрабатываем как список через запятые
+        if (text.includes(',')) {
+            return text.split(',')
+                .map(id => id.trim())
+                .filter(id => id !== '');
+        } else {
+            // Иначе обрабатываем как список через переносы строк
+            return text.split('\n')
+                .map(id => {
+                    // Убираем лишние запятые и пробелы, оставляем только ID
+                    return id.replace(/,/g, '').trim();
+                })
+                .filter(id => id !== '');
+        }
     }
     
     // Функция для обновления счетчиков
