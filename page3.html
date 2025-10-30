@@ -554,6 +554,15 @@
         outputField.className = 'info-field green output-field';
     }
     
+    // Функция для обработки вставки данных с небольшой задержкой
+    function handlePasteWithDelay() {
+        // Небольшая задержка для обработки вставленных данных
+        setTimeout(() => {
+            updateOutput();
+            updateCounters();
+        }, 10);
+    }
+    
     // Функция для копирования текста в буфер обмена
     async function copyToClipboard() {
         const dealIds = getDealIds();
@@ -777,6 +786,10 @@
             updateOutput();
             updateCounters();
         });
+        
+        // Добавляем обработчики для события paste
+        dealIdsInput.addEventListener('paste', handlePasteWithDelay);
+        realtorIdsInput.addEventListener('paste', handlePasteWithDelay);
         
         // Обработчик фокуса на поле разбивки
         splitCountInput.addEventListener('focus', function() {
