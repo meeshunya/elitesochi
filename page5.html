@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Извлечение и форматирование номеров телефонов</title>
+    <link rel="icon" href="images/icons/page2.png" type="image/png">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .fields-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .input-section, .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            width: 100%;
+        }
+        .field-group {
+            margin-bottom: 0px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        .textarea-container {
+            position: relative;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 0;
+            font-family: monospace;
+            resize: none;
+            box-sizing: border-box;
+            line-height: 1.5;
+        }
+        #input {
+            background-color: white;
+        }
+        .output-container {
+            background-color: #e8e8e8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            line-height: 1;
+            box-sizing: border-box;
+            display: block;
+        }
+        .output-table {
+            width: 100%;
+            border-collapse: collapse;
+            height: auto;
+            vertical-align: top;
+        }
+        .output-table-wrapper {
+            height: auto;
+            overflow: auto;
+        }
+        .line-number-cell {
+            width: 20px;
+            color: #888;
+            font-size: 12px;
+            text-align: right;
+            padding-right: 10px;
+            vertical-align: top;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            border-right: 1px solid #ccc;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+        .id-cell {
+            padding-left: 10px;
+            vertical-align: top;
+            word-break: break-all;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+        .output-table tr {
+            vertical-align: top;
+            height: auto;
+        }
+        .copy-button {
+            padding: 12px 20px;
+            background: #fcfcfc;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 140px;
+            min-width: 140px;
+            min-height: 36px;
+            white-space: nowrap;
+        }
+
+        .copy-button:hover {
+            background-color: #e0e0e0;
+        }
+        .copy-button:active {
+            transform: none;
+        }
+        .copy-button.copied {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .copy-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .stats {
+            padding: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+            width: 98.6%;
+            text-align: left;
+        }
+        .duplicates-warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .duplicates-line-numbers {
+            color: #ff8787;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .success-animation {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .clear-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 140px;
+            padding: 12px 20px;
+            background-color: #ffeded;
+            border: 1px solid #e74c3c;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-size: 13px;
+            font-weight: regular;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 36px;
+        }
+        .clear-btn:hover {
+            background-color: #ffabab;
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+        .clear-btn:active {
+            background-color: #ff5959;
+            color: white;
+        }
+
+        .clear-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            border-color: #999;
+            color: #999;
+        }
+
+        .clear-btn.cleared {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .format-selector {
+            margin-top: 20px;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .format-selector label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        
+        .format-selector select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        
+        .format-selector select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .fields-row {
+                flex-direction: column;
+            }
+            .buttons-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .copy-button, .clear-btn {
+                width: 100%;
+            }
+            .format-selector {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Извлечение и форматирование номеров телефонов</h1>
+        <div class="fields-row">
+            <div class="input-section">
+                <div class="field-group">
+                    <label for="input">Поле ввода:</label>
+                    <div class="textarea-container">
+                        <textarea id="input" placeholder="Введите текст с номерами телефонов здесь..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Формат вывода теперь здесь, под полем ввода -->
+                <div class="format-selector">
+                    <label for="formatSelect">Формат вывода:</label>
+                    <select id="formatSelect">
+                        <option value="plain">1. Получить номера</option>
+                        <option value="newtel">2. Newtel</option>
+                        <option value="optima">3. Optima</option>
+                        <option value="plusofon">4. Plusofon</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="field-group">
+                    <label>Поле вывода:</label>
+                    <div class="output-container" id="outputContainer">
+                        <div class="output-table-wrapper">
+                            <table class="output-table" id="outputTable">
+                                <!-- Таблица будет заполняться через JavaScript -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Статистика и кнопки расположены под обоими полями -->
+        <div class="stats-container">
+            <div class="stats" id="stats">Найдено номеров: 0</div>
+            <div class="stats" id="duplicates">Найдено дублей: 0</div>
+            
+            <div class="buttons-container">
+                <button class="copy-button" id="copyButton">
+                    📋 Копировать
+                </button>
+                
+                <button class="clear-btn" id="clearButton">
+                    🗑️ Очистить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Основная функция для поиска номеров телефонов в тексте
+        function extractPhoneNumbers(text) {
+            // Улучшенное регулярное выражение для поиска российских номеров телефонов
+            // Оно находит номера в различных форматах:
+            // +7XXXXXXXXXX, +7 (XXX) XXX-XX-XX, +7-XXX-XXX-XX-XX, 8XXXXXXXXXX, 8(XXX)XXX-XX-XX и т.д.
+            const phoneRegex = /(?:\+7|7|8)[\s\-\(]*(?:\d[\s\-\(\)]*){10}/g;
+            
+            const matches = [];
+            let match;
+            
+            // Сбрасываем индекс регулярного выражения
+            phoneRegex.lastIndex = 0;
+            
+            // Ищем все совпадения
+            while ((match = phoneRegex.exec(text)) !== null) {
+                // Извлекаем только цифры из номера
+                const cleanNumber = match[0].replace(/\D/g, '');
+                
+                // Преобразуем в формат 7XXXXXXXXXX
+                let formattedNumber = cleanNumber;
+                if (formattedNumber.startsWith('8')) {
+                    formattedNumber = '7' + formattedNumber.substring(1);
+                } else if (formattedNumber.startsWith('+7')) {
+                    formattedNumber = '7' + formattedNumber.substring(2);
+                } else if (formattedNumber.startsWith('7') && formattedNumber.length === 11) {
+                    // Уже в правильном формате
+                } else if (formattedNumber.startsWith('7') && formattedNumber.length > 11) {
+                    // Если номер начинается с 7 и содержит более 11 цифр, берем первые 11
+                    formattedNumber = formattedNumber.substring(0, 11);
+                }
+                
+                // Проверяем длину номера (должно быть 11 цифр)
+                if (formattedNumber.length === 11 && formattedNumber.startsWith('7')) {
+                    matches.push(formattedNumber);
+                }
+            }
+            
+            // Убираем дубликаты, оставляя только уникальные номера в порядке их появления
+            const uniqueMatches = [];
+            const seen = new Set();
+            
+            for (const phone of matches) {
+                if (!seen.has(phone)) {
+                    seen.add(phone);
+                    uniqueMatches.push(phone);
+                }
+            }
+            
+            return uniqueMatches;
+        }
+        
+        // Альтернативный метод извлечения номеров (более простой и надежный)
+        function extractPhoneNumbersAlternative(text) {
+            // Ищем последовательности из 11 цифр, которые могут начинаться с +7, 7 или 8
+            const phoneRegex = /(?:\+7|7|8)[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d/g;
+            
+            const matches = [];
+            let match;
+            
+            // Сбрасываем индекс регулярного выражения
+            phoneRegex.lastIndex = 0;
+            
+            // Ищем все совпадения
+            while ((match = phoneRegex.exec(text)) !== null) {
+                // Извлекаем только цифры из номера
+                const cleanNumber = match[0].replace(/\D/g, '');
+                
+                // Преобразуем в формат 7XXXXXXXXXX
+                let formattedNumber = cleanNumber;
+                if (formattedNumber.startsWith('8')) {
+                    formattedNumber = '7' + formattedNumber.substring(1);
+                } else if (formattedNumber.startsWith('+7')) {
+                    formattedNumber = '7' + formattedNumber.substring(2);
+                }
+                
+                // Проверяем длину номера (должно быть 11 цифр)
+                if (formattedNumber.length === 11 && formattedNumber.startsWith('7')) {
+                    matches.push(formattedNumber);
+                }
+            }
+            
+            // Убираем дубликаты, оставляя только уникальные номера в порядке их появления
+            const uniqueMatches = [];
+            const seen = new Set();
+            
+            for (const phone of matches) {
+                if (!seen.has(phone)) {
+                    seen.add(phone);
+                    uniqueMatches.push(phone);
+                }
+            }
+            
+            return uniqueMatches;
+        }
+        
+        // Функция для поиска дубликатов
+        function findDuplicates(matches) {
+            const duplicates = {};
+            const lineNumbers = {};
+            
+            for (let i = 0; i < matches.length; i++) {
+                const phone = matches[i];
+                if (!lineNumbers[phone]) {
+                    lineNumbers[phone] = [];
+                }
+                lineNumbers[phone].push(i + 1);
+            }
+            
+            for (const phone in lineNumbers) {
+                if (lineNumbers[phone].length > 1) {
+                    duplicates[phone] = lineNumbers[phone];
+                }
+            }
+            
+            return duplicates;
+        }
+        
+        // Функция для форматирования номеров в зависимости от выбранного формата
+        function formatPhoneNumbers(phoneNumbers, format) {
+            switch(format) {
+                case 'plain':
+                    // Простой формат - каждый номер на новой строке
+                    return phoneNumbers.map(phone => phone).join('\n');
+                    
+                case 'newtel':
+                    // Newtel формат - разделитель ^n
+                    return phoneNumbers.map(phone => phone).join('^n');
+                    
+                case 'optima':
+                    // Optima формат - разделитель ^o
+                    return phoneNumbers.map(phone => phone).join('^o');
+                    
+                case 'plusofon':
+                    // Plusofon формат - разделитель ^p
+                    return phoneNumbers.map(phone => phone).join('^p');
+                    
+                default:
+                    return phoneNumbers.map(phone => phone).join('\n');
+            }
+        }
+
+        // Основная функция обработки текста
+        function processText() {
+            const inputText = document.getElementById('input').value;
+            const formatSelect = document.getElementById('formatSelect');
+            const selectedFormat = formatSelect.value;
+            
+            const phoneNumbers = extractPhoneNumbersAlternative(inputText);
+            const outputTable = document.getElementById('outputTable');
+            const stats = document.getElementById('stats');
+            const duplicatesElement = document.getElementById('duplicates');
+            
+            // Очищаем таблицу
+            outputTable.innerHTML = '';
+            
+            if (phoneNumbers.length > 0) {
+                const formattedOutput = formatPhoneNumbers(phoneNumbers, selectedFormat);
+                const outputLines = formattedOutput.split('\n');
+                
+                // Заполняем таблицу
+                outputLines.forEach((line, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const lineNumberCell = document.createElement('td');
+                    lineNumberCell.className = 'line-number-cell';
+                    lineNumberCell.textContent = (index + 1);
+                    
+                    const idCell = document.createElement('td');
+                    idCell.className = 'id-cell';
+                    idCell.textContent = line;
+                    
+                    row.appendChild(lineNumberCell);
+                    row.appendChild(idCell);
+                    outputTable.appendChild(row);
+                });
+                
+                stats.textContent = `Найдено номеров: ${phoneNumbers.length}`;
+                
+                const duplicates = findDuplicates(phoneNumbers);
+                const duplicateCount = Object.keys(duplicates).length;
+                
+                if (duplicateCount > 0) {
+                    let duplicateInfo = [];
+                    
+                    for (const phone in duplicates) {
+                        const lineNumbers = duplicates[phone].map(num => 
+                            `<span class="duplicates-line-numbers">${num}</span>`
+                        ).join('<span class="duplicates-line-numbers"> и </span>');
+                        duplicateInfo.push(`<span class="duplicates-line-numbers">Строки:</span> ${lineNumbers}`);
+                    }
+                    
+                    duplicatesElement.innerHTML = `Найдено дублей: <span class="duplicates-warning">${duplicateCount}</span> (<span class="duplicates-warning">${duplicateInfo.join('; ')}</span>)`;
+                } else {
+                    duplicatesElement.textContent = 'Найдено дублей: 0';
+                    duplicatesElement.innerHTML = duplicatesElement.textContent;
+                }
+            } else {
+                stats.textContent = 'Найдено номеров: 0';
+                duplicatesElement.textContent = 'Найдено дублей: 0';
+                duplicatesElement.innerHTML = duplicatesElement.textContent;
+            }
+        }
+
+        // Функция для копирования текста в буфер обмена
+        async function copyToClipboard() {
+            const outputTable = document.getElementById('outputTable');
+            const rows = outputTable.getElementsByTagName('tr');
+            let outputText = '';
+            
+            // Собираем текст из таблицы
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 1) {
+                    outputText += cells[1].textContent + (i < rows.length - 1 ? '\n' : '');
+                }
+            }
+            
+            if (!outputText.trim()) {
+                alert('Нет данных для копирования');
+                return;
+            }
+            
+            const copyButton = document.getElementById('copyButton');
+            
+            try {
+                copyButton.disabled = true;
+                copyButton.innerHTML = '⏳ Копирование...';
+                
+                await navigator.clipboard.writeText(outputText.trim());
+                
+                copyButton.innerHTML = '✅ Скопировано!';
+                copyButton.classList.add('success-animation', 'copied');
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = '📋 Копировать';
+                    copyButton.classList.remove('success-animation', 'copied');
+                    copyButton.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                // Fallback для старых браузеров
+                const textArea = document.createElement('textarea');
+                textArea.value = outputText.trim();
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    
+                    if (successful) {
+                        copyButton.innerHTML = '✅ Скопировано!';
+                        copyButton.classList.add('success-animation', 'copied');
+                        
+                        setTimeout(() => {
+                            copyButton.innerHTML = '📋 Копировать';
+                            copyButton.classList.remove('success-animation', 'copied');
+                            copyButton.disabled = false;
+                        }, 2000);
+                    } else {
+                        throw new Error('execCommand не сработал');
+                    }
+                    
+                } catch (err) {
+                    copyButton.innerHTML = '📋 Копировать';
+                    copyButton.disabled = false;
+                    alert('Не удалось скопировать текст автоматически. Пожалуйста, скопируйте текст вручную.');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function clearAllFields() {
+            const clearButton = document.getElementById('clearButton');
+            const hasContent = document.getElementById('input').value || document.getElementById('outputTable').rows.length > 0;
+            
+            if (!hasContent) {
+                alert('Нет данных для очистки');
+                return;
+            }
+            
+            document.getElementById('input').value = '';
+            document.getElementById('outputTable').innerHTML = '';
+            document.getElementById('stats').textContent = 'Найдено номеров: 0';
+            document.getElementById('duplicates').textContent = 'Найдено дублей: 0';
+            document.getElementById('duplicates').innerHTML = document.getElementById('duplicates').textContent;
+            
+            clearButton.innerHTML = '✅ Очищено!';
+            clearButton.classList.add('success-animation', 'cleared');
+            
+            setTimeout(() => {
+                clearButton.innerHTML = '🗑️ Очистить';
+                clearButton.classList.remove('success-animation', 'cleared');
+            }, 2000);
+        }
+
+        // Инициализация событий
+        document.getElementById('input').addEventListener('input', processText);
+        document.getElementById('formatSelect').addEventListener('change', processText);
+        
+        window.addEventListener('load', function() {
+            processText();
+        });
+        
+        document.getElementById('copyButton').addEventListener('click', copyToClipboard);
+        document.getElementById('clearButton').addEventListener('click', clearAllFields);
+
+        document.getElementById('input').addEventListener('paste', function(e) {
+            setTimeout(processText, 100);
+        });
+    </script>
+</body>
+</html>
