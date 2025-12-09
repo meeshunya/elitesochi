@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор паролей</title>
+    <link rel="icon" href="images/icons/page1.png" type="image/png">
+    
+    <script src="header.js" defer></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 1300px;
+            margin: 5px auto;
+            padding: 10px;
+            background-color: #f5f7f9;
+        }
+        .container {
+            border: 2px solid #ddd;
+            padding: 25px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .info-field {
+            margin: 12px 0;
+            padding: 12px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #95a5a6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .info-field.gray {
+            border-left-color: #95a5a6;
+        }
+        .info-field.yellow {
+            border-left-color: #f39c12;
+            background-color: #fef9e7;
+        }
+        .info-field.green {
+            border-left-color: #27ae60;
+            background-color: #f0fff4;
+        }
+        .info-field.blue {
+            border-left-color: #3498db;
+            background-color: #f0f8ff;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-right: 10px;
+            min-width: 150px;
+        }
+        .info-content {
+            flex-grow: 1;
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            background-color: white;
+        }
+        .input-field:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        .input-field:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .hint {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+        .success-message {
+            color: #2ecc71;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .success-animation {
+            animation: fadeIn 0.3s ease;
+        }
+        .copy-animation {
+            animation: fadeIn 0.2s ease;
+        }
+
+        /* Двухколоночный макет */
+        .main-layout {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+        .left-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Стили для ползунка длины пароля */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .slider-value {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 40px;
+            text-align: center;
+        }
+        .slider {
+            flex-grow: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Стили для чекбоксов */
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .option-group label {
+            font-size: 13px;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        .option-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .option-group.disabled {
+            opacity: 0.5;
+        }
+        .option-group.disabled label {
+            cursor: not-allowed;
+        }
+        .option-group.disabled input[type="checkbox"] {
+            cursor: not-allowed;
+        }
+
+        /* Стили для списка паролей */
+        .passwords-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px; /* Уменьшенный отступ между строк */
+            margin-top: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .password-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px; /* Уменьшена высота строки */
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            transition: all 0.2s;
+            cursor: pointer; /* Курсор для клика */
+            min-height: 30px; /* Фиксированная минимальная высота */
+        }
+        .password-item:hover {
+            background-color: #f0f0f0;
+            border-color: #3498db;
+            transform: translateY(-1px);
+        }
+        .password-item.copied {
+            background-color: #f0fff4;
+            border-color: #27ae60;
+        }
+        .password-text {
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 1px;
+            color: #2c3e50;
+            word-break: break-all;
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .password-text.full {
+            white-space: normal;
+            word-break: break-all;
+            overflow: visible;
+        }
+        .password-strength {
+            font-size: 10px; /* Уменьшен размер шрифта */
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .strength-weak {
+            background-color: #ffeded;
+            color: #e74c3c;
+        }
+        .strength-medium {
+            background-color: #fef9e7;
+            color: #f39c12;
+        }
+        .strength-strong {
+            background-color: #f0fff4;
+            color: #27ae60;
+        }
+        .strength-copied {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* Кнопка генерации */
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 20px;
+            margin: 20px 0 5px 0;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 36px;
+        }
+        .action-btn:hover {
+            background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+        }
+        .action-btn:active {
+            background-color: #1c6ea4;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 1350px) {
+            body {
+                width: 95%;
+            }
+            .main-layout {
+                flex-direction: column;
+            }
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Генератор паролей</h1>
+        
+        <!-- Основной двухпанельный макет -->
+        <div class="main-layout">
+            <!-- Левая панель: Сгенерированные пароли -->
+            <div class="left-panel">
+                <div class="info-field green" id="passwordsField">
+                    <div class="info-content">
+                        <div class="info-label">Сгенерированные пароли:</div>
+                        <div class="passwords-container" id="passwordsList">
+                            <!-- Здесь будут отображаться пароли -->
+                            <div class="password-item">
+                                <span class="password-text">Нажмите кнопку "Сгенерировать пароли"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Правая панель: Настройки -->
+            <div class="right-panel">
+                <!-- Длина пароля -->
+                <div class="info-field green" id="lengthField">
+                    <div class="info-content">
+                        <div class="info-label">Длина пароля:</div>
+                        <div class="slider-container">
+                            <span class="slider-value" id="lengthValue">12</span>
+                            <input type="range" id="lengthSlider" class="slider" min="6" max="32" value="12" step="1">
+                        </div>
+                        <div class="hint">Длина: от 6 до 32 символов</div>
+                    </div>
+                </div>
+                
+                <!-- Опции генерации -->
+                <div class="info-field yellow" id="optionsField">
+                    <div class="info-content">
+                        <div class="info-label">Опции генерации:</div>
+                        <div class="options-container">
+                            <!-- Основные опции -->
+                            <div class="option-group">
+                                <input type="checkbox" id="lowercase" checked>
+                                <label for="lowercase">Англ. строчные (a-z)</label>
+                            </div>
+                            <div class="option-group">
+                                <input type="checkbox" id="uppercase" checked>
+                                <label for="uppercase">Англ. ЗАГЛАВНЫЕ (A-Z)</label>
+                            </div>
+                            <div class="option-group">
+                                <input type="checkbox" id="numbers" checked>
+                                <label for="numbers">Цифры (0-9)</label>
+                            </div>
+                            <div class="option-group">
+                                <input type="checkbox" id="symbols" checked>
+                                <label for="symbols">Спецсимволы</label>
+                            </div>
+                            
+                            <!-- Дополнительные опции -->
+                            <div class="option-group">
+                                <input type="checkbox" id="excludeAmbiguous" checked>
+                                <label for="excludeAmbiguous">Искл. похожие символы</label>
+                            </div>
+                        </div>
+                        <div class="hint">Выберите типы символов для паролей</div>
+                    </div>
+                </div>
+                
+                <!-- Поле для исключения выбранных символов -->
+                <div class="info-field blue" id="customExcludeField">
+                    <div class="info-content">
+                        <div class="info-label">Исключить символы:</div>
+                        <input type="text" 
+                               class="input-field" 
+                               id="excludeCustomChars" 
+                               placeholder="Введите символы для исключения">
+                        <div class="hint">Введите символы, которые нужно исключить из генерации</div>
+                    </div>
+                </div>
+                
+                <!-- Кнопка генерации -->
+                <button class="action-btn" id="generateBtn">
+                    🔄 Сгенерировать пароли
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // Наборы символов
+        const charSets = {
+            lowercase: 'abcdefghijklmnopqrstuvwxyz',
+            uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            numbers: '0123456789',
+            symbols: '!@#$%^&*()_+-=[]{};:<>?.,'
+        };
+
+        // Похожие символы для исключения
+        const similarChars = {
+            ambiguous: '1lI0OoZBS' // неоднозначные символы
+        };
+
+        // Элементы DOM
+        const lengthSlider = document.getElementById('lengthSlider');
+        const lengthValue = document.getElementById('lengthValue');
+        const passwordsList = document.getElementById('passwordsList');
+        const generateBtn = document.getElementById('generateBtn');
+        const excludeAmbiguous = document.getElementById('excludeAmbiguous');
+        const excludeCustomChars = document.getElementById('excludeCustomChars');
+        
+        // Настройки по умолчанию
+        let passwordLength = 12;
+        let passwords = [];
+        let autoGenerateTimeout = null;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обновление значения длины пароля
+            lengthSlider.addEventListener('input', function() {
+                passwordLength = parseInt(this.value);
+                lengthValue.textContent = passwordLength;
+                autoGeneratePasswords();
+            });
+
+            // Обработчик для чекбокса исключения похожих символов
+            excludeAmbiguous.addEventListener('change', updateExcludeField);
+
+            // Обработчик ввода символов для исключения
+            excludeCustomChars.addEventListener('input', function() {
+                autoGeneratePasswords();
+            });
+
+            // Обработчики для остальных чекбоксов
+            document.querySelectorAll('#lowercase, #uppercase, #numbers, #symbols').forEach(checkbox => {
+                checkbox.addEventListener('change', autoGeneratePasswords);
+            });
+
+            // Обработчик для кнопки генерации
+            generateBtn.addEventListener('click', generatePasswords);
+            
+            // Инициализируем поле исключений при загрузке
+            initializeExcludeField();
+            
+            // Генерируем пароли при загрузке страницы
+            generatePasswords();
+        });
+
+        // Инициализация поля исключения при загрузке
+        function initializeExcludeField() {
+            let initialValue = '><.,:'; // Базовые символы для исключения
+            
+            // Добавляем символы из галочки "Искл. похожие символы", если она отмечена
+            if (excludeAmbiguous.checked) {
+                initialValue += '1lI0OoZBS';
+            }
+            
+            // Удаляем дубликаты и устанавливаем значение
+            excludeCustomChars.value = [...new Set(initialValue)].join('');
+        }
+
+        // Обновление поля исключения символов
+        function updateExcludeField() {
+            let currentValue = excludeCustomChars.value;
+            
+            // Символы из галочки для добавления/удаления
+            const ambiguousChars = '1lI0OoZBS';
+            
+            // Удаляем символы, если галочка снята
+            if (!excludeAmbiguous.checked) {
+                for (let char of ambiguousChars) {
+                    currentValue = currentValue.replace(new RegExp(char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '');
+                }
+            }
+            
+            // Добавляем символы, если галочка включена
+            if (excludeAmbiguous.checked) {
+                for (let char of ambiguousChars) {
+                    if (!currentValue.includes(char)) {
+                        currentValue += char;
+                    }
+                }
+            }
+            
+            // Удаляем дубликаты
+            currentValue = [...new Set(currentValue)].join('');
+            
+            // Обновляем поле
+            excludeCustomChars.value = currentValue;
+            
+            // Запускаем генерацию
+            autoGeneratePasswords();
+        }
+
+        // Функция для автоматической генерации с задержкой
+        function autoGeneratePasswords() {
+            // Отменяем предыдущий таймаут
+            if (autoGenerateTimeout) {
+                clearTimeout(autoGenerateTimeout);
+            }
+            
+            // Устанавливаем новый таймаут для генерации через 300 мс
+            autoGenerateTimeout = setTimeout(generatePasswords, 300);
+        }
+
+        // Генерация одного пароля
+        function generatePassword() {
+            let availableChars = '';
+            
+            // Добавляем выбранные наборы символов
+            if (document.getElementById('lowercase').checked) {
+                availableChars += charSets.lowercase;
+            }
+            if (document.getElementById('uppercase').checked) {
+                availableChars += charSets.uppercase;
+            }
+            if (document.getElementById('numbers').checked) {
+                availableChars += charSets.numbers;
+            }
+            if (document.getElementById('symbols').checked) {
+                availableChars += charSets.symbols;
+            }
+
+            // Проверяем, что есть хотя бы один набор символов
+            if (availableChars.length === 0) {
+                return 'Выберите хотя бы один тип символов!';
+            }
+
+            // Исключаем пользовательские символы
+            const customExclude = document.getElementById('excludeCustomChars').value;
+            if (customExclude) {
+                availableChars = availableChars.split('').filter(char => 
+                    !customExclude.includes(char)
+                ).join('');
+            }
+
+            // Проверяем, что после исключений остались символы
+            if (availableChars.length === 0) {
+                return 'Нет доступных символов с текущими настройками!';
+            }
+
+            // Генерируем пароль
+            let password = '';
+            for (let i = 0; i < passwordLength; i++) {
+                const randomIndex = Math.floor(Math.random() * availableChars.length);
+                password += availableChars[randomIndex];
+            }
+
+            return password;
+        }
+
+        // Оценка сложности пароля
+        function getPasswordStrength(password) {
+            let score = 0;
+            
+            // Длина пароля
+            if (password.length >= 12) score += 2;
+            else if (password.length >= 8) score += 1;
+            
+            // Разнообразие символов
+            const hasLowercase = /[a-z]/.test(password);
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasSymbols = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password);
+            
+            if (hasLowercase) score += 1;
+            if (hasUppercase) score += 1;
+            if (hasNumbers) score += 1;
+            if (hasSymbols) score += 2;
+            
+            // Определяем уровень сложности
+            if (score >= 6) return { level: 'strong', text: 'Надежный' };
+            if (score >= 4) return { level: 'medium', text: 'Средний' };
+            return { level: 'weak', text: 'Слабый' };
+        }
+
+        // Копирование пароля
+        function copyPassword(password, element) {
+            navigator.clipboard.writeText(password).then(() => {
+                // Показываем визуальную обратную связь
+                element.classList.add('copied');
+                element.classList.add('copy-animation');
+                
+                // Сохраняем оригинальный пароль и оценку
+                const originalPassword = password;
+                const originalStrength = getPasswordStrength(password);
+                
+                // Меняем только правую часть с оценкой на "Скопировано"
+                const strengthElement = element.querySelector('.password-strength');
+                if (strengthElement) {
+                    strengthElement.textContent = 'Скопировано';
+                    strengthElement.className = 'password-strength strength-copied';
+                }
+                
+                // Возвращаем исходный вид через 1.5 секунды
+                setTimeout(() => {
+                    element.classList.remove('copied');
+                    element.classList.remove('copy-animation');
+                    if (strengthElement) {
+                        strengthElement.textContent = originalStrength.text;
+                        strengthElement.className = `password-strength strength-${originalStrength.level}`;
+                    }
+                }, 1500);
+                
+            }).catch(err => {
+                console.error('Ошибка при копировании: ', err);
+                alert('Не удалось скопировать пароль');
+            });
+        }
+
+        // Генерация 10 паролей
+        function generatePasswords() {
+            passwords = [];
+            passwordsList.innerHTML = '';
+            
+            // Генерируем 10 паролей
+            for (let i = 0; i < 10; i++) {
+                const password = generatePassword();
+                passwords.push(password);
+                
+                // Оцениваем сложность
+                const strength = getPasswordStrength(password);
+                
+                // Экранируем HTML-символы для безопасного отображения
+                const escapedPassword = escapeHtml(password);
+                
+                // Создаем элемент для пароля
+                const passwordItem = document.createElement('div');
+                passwordItem.className = 'password-item';
+                passwordItem.dataset.index = i;
+                passwordItem.innerHTML = `
+                    <span class="password-text" title="${escapedPassword}">${escapedPassword}</span>
+                    <span class="password-strength strength-${strength.level}">${strength.text}</span>
+                `;
+                
+                // Добавляем обработчик клика для копирования
+                passwordItem.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    if (passwords[index]) {
+                        copyPassword(passwords[index], this);
+                    }
+                });
+                
+                passwordsList.appendChild(passwordItem);
+            }
+        }
+
+        // Функция для экранирования HTML-символов
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

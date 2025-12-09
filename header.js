@@ -7,7 +7,8 @@ function loadHeader() {
                 <a href="page2.html" class="nav-link ${window.location.pathname.includes('page2.html') ? 'active' : ''}">Извлечение ID из текста</a>
                 <a href="page3.html" class="nav-link ${window.location.pathname.includes('page3.html') ? 'active' : ''}">Формирование списка сделок на распределение</a>
                 <a href="page4.html" class="nav-link ${window.location.pathname.includes('page4.html') ? 'active' : ''}">Рандомизатор</a>
-                <a href="page5.html" class="nav-link ${window.location.pathname.includes('page5.html') ? 'active' : ''}">Номера</a
+                <a href="page5.html" class="nav-link ${window.location.pathname.includes('page5.html') ? 'active' : ''}">Номера</a>
+                <a href="page6.html" class="nav-link ${window.location.pathname.includes('page6.html') ? 'active' : ''}">Пароли Генератор</a
             </nav>
         </header>
         
