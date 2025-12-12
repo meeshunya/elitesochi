@@ -18,7 +18,7 @@ function loadHeader() {
                 width: 99vw;
                 max-width: 99vw;
                 padding: 15px 0;
-                margin-bottom: 20px;
+                margin-bottom: 12.5px;
                 box-sizing: border-box;
                 position: relative;
                 left: 50%;
