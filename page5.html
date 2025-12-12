@@ -31,7 +31,10 @@
             margin-bottom: 20px;
         }
         .input-section, .output-section {
-            flex: 1;
+            flex: 2; /* 2 части из 5 */
+        }
+        .format-section {
+            flex: 1; /* 1 часть из 5 */
             display: flex;
             flex-direction: column;
         }
@@ -134,8 +137,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            width: 140px;
-            min-width: 140px;
+            width: 100%;
             min-height: 36px;
             white-space: nowrap;
         }
@@ -184,7 +186,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            width: 140px;
+            width: 100%;
             padding: 12px 20px;
             background-color: #ffeded;
             border: 1px solid #e74c3c;
@@ -219,22 +221,15 @@
 
         .buttons-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 15px;
             width: 100%;
         }
         
-        .stats-container {
+        .format-selector {
+            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-        }
-        
-        .format-selector {
-            margin-top: 20px;
-            margin-bottom: 0;
-            display: flex;
-            align-items: center;
             gap: 10px;
         }
         
@@ -243,19 +238,68 @@
             white-space: nowrap;
         }
         
-        .format-selector select {
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             padding: 8px 12px;
             border-radius: 4px;
             border: 1px solid #ddd;
             background-color: white;
-            font-size: 14px;
-            min-width: 200px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .format-selector select:focus {
-            outline: none;
+        .radio-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .radio-option.selected {
+            background-color: #e8f4fd;
             border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .radio-option input[type="radio"] {
+            margin: 0;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .radio-option span {
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .format-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        
+        .format-section .field-group {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .format-section-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
         
         @media (max-width: 768px) {
@@ -269,9 +313,11 @@
             .copy-button, .clear-btn {
                 width: 100%;
             }
-            .format-selector {
-                flex-direction: column;
-                align-items: flex-start;
+            .format-section .field-group {
+                height: auto;
+            }
+            .input-section, .output-section, .format-section {
+                flex: 1;
             }
         }
     </style>
@@ -280,6 +326,7 @@
     <div class="container">
         <h1>Извлечение и форматирование номеров телефонов</h1>
         <div class="fields-row">
+            <!-- Поле ввода -->
             <div class="input-section">
                 <div class="field-group">
                     <label for="input">Поле ввода:</label>
@@ -287,19 +334,9 @@
                         <textarea id="input" placeholder="Введите текст с номерами телефонов здесь..."></textarea>
                     </div>
                 </div>
-                
-                <!-- Формат вывода теперь здесь, под полем ввода -->
-                <div class="format-selector">
-                    <label for="formatSelect">Формат вывода:</label>
-                    <select id="formatSelect">
-                        <option value="plain">1. Получить номера</option>
-                        <option value="newtel">2. Newtel</option>
-                        <option value="optima">3. Optima</option>
-                        <option value="plusofon">4. Plusofon</option>
-                    </select>
-                </div>
             </div>
             
+            <!-- Поле вывода -->
             <div class="output-section">
                 <div class="field-group">
                     <label>Поле вывода:</label>
@@ -312,22 +349,50 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Формат ввода и кнопки -->
+            <div class="format-section">
+                <div class="field-group">
+                    <label>Формат вывода:</label>
+                    <div class="format-section-content">
+                        <div class="format-selector">
+                            <div class="radio-group">
+                                <div class="radio-option selected" data-value="plain">
+                                    <input type="radio" id="formatPlain" name="format" value="plain" checked>
+                                    <span>1. Получить номера</span>
+                                </div>
+                                <div class="radio-option" data-value="newtel">
+                                    <input type="radio" id="formatNewtel" name="format" value="newtel">
+                                    <span>2. Newtel</span>
+                                </div>
+                                <div class="radio-option" data-value="optima">
+                                    <input type="radio" id="formatOptima" name="format" value="optima">
+                                    <span>3. Optima</span>
+                                </div>
+                                <div class="radio-option" data-value="plusofon">
+                                    <input type="radio" id="formatPlusofon" name="format" value="plusofon">
+                                    <span>4. Plusofon</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="buttons-container">
+                            <button class="copy-button" id="copyButton">
+                                📋 Копировать
+                            </button>
+                            
+                            <button class="clear-btn" id="clearButton">
+                                🗑️ Очистить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <!-- Статистика и кнопки расположены под обоими полями -->
+        <!-- Статистика под всеми полями -->
         <div class="stats-container">
             <div class="stats" id="stats">Найдено номеров: 0</div>
-            <div class="stats" id="duplicates">Найдено дублей: 0</div>
-            
-            <div class="buttons-container">
-                <button class="copy-button" id="copyButton">
-                    📋 Копировать
-                </button>
-                
-                <button class="clear-btn" id="clearButton">
-                    🗑️ Очистить
-                </button>
-            </div>
         </div>
     </div>
 
@@ -457,16 +522,16 @@
                     return phoneNumbers.map(phone => phone).join('\n');
                     
                 case 'newtel':
-                    // Newtel формат - разделитель ^n
-                    return phoneNumbers.map(phone => phone).join('^n');
+                    // Newtel формат - добавляем "n" к каждому номеру и разделяем "^"
+                    return phoneNumbers.map(phone => `n${phone}`).join('^');
                     
                 case 'optima':
-                    // Optima формат - разделитель ^o
-                    return phoneNumbers.map(phone => phone).join('^o');
+                    // Optima формат - добавляем "o" к каждому номеру и разделяем "^"
+                    return phoneNumbers.map(phone => `o${phone}`).join('^');
                     
                 case 'plusofon':
-                    // Plusofon формат - разделитель ^p
-                    return phoneNumbers.map(phone => phone).join('^p');
+                    // Plusofon формат - добавляем "p" к каждому номеру и разделяем "^"
+                    return phoneNumbers.map(phone => `p${phone}`).join('^');
                     
                 default:
                     return phoneNumbers.map(phone => phone).join('\n');
@@ -476,8 +541,7 @@
         // Основная функция обработки текста
         function processText() {
             const inputText = document.getElementById('input').value;
-            const formatSelect = document.getElementById('formatSelect');
-            const selectedFormat = formatSelect.value;
+            const selectedFormat = document.querySelector('input[name="format"]:checked').value;
             
             const phoneNumbers = extractPhoneNumbersAlternative(inputText);
             const outputTable = document.getElementById('outputTable');
@@ -628,11 +692,44 @@
             }, 2000);
         }
 
+        // Обработчики для радиокнопок
+        function setupRadioButtons() {
+            const radioOptions = document.querySelectorAll('.radio-option');
+            
+            radioOptions.forEach(option => {
+                const radioInput = option.querySelector('input[type="radio"]');
+                const optionValue = option.dataset.value;
+                
+                // Клик по всей области опции
+                option.addEventListener('click', function(e) {
+                    if (e.target !== radioInput) {
+                        radioInput.checked = true;
+                    }
+                    
+                    // Обновляем стили
+                    radioOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    
+                    // Запускаем обработку текста
+                    processText();
+                });
+                
+                // Изменение радиокнопки
+                radioInput.addEventListener('change', function() {
+                    if (this.checked) {
+                        radioOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        processText();
+                    }
+                });
+            });
+        }
+
         // Инициализация событий
         document.getElementById('input').addEventListener('input', processText);
-        document.getElementById('formatSelect').addEventListener('change', processText);
         
         window.addEventListener('load', function() {
+            setupRadioButtons();
             processText();
         });
         
