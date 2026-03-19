@@ -113,6 +113,9 @@ function wrapSelection(tag) {
     const end = textarea.selectionEnd;
     const text = textarea.value;
     
+    // Сохраняем позицию прокрутки
+    const scrollTop = textarea.scrollTop;
+    
     const openTag = `<${tag}>`;
     const closeTag = `</${tag}>`;
     
@@ -128,6 +131,9 @@ function wrapSelection(tag) {
         textarea.focus();
         textarea.setSelectionRange(start + openTag.length, end + openTag.length);
     }
+    
+    // Восстанавливаем позицию прокрутки
+    textarea.scrollTop = scrollTop;
     
     textarea.dispatchEvent(new Event('input'));
 }
